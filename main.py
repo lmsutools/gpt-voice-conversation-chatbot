@@ -94,7 +94,7 @@ class GUI:
                 # Load OpenAI key if you can
                 if not keys[1] == '':
                     self.key = keys[1]
-                    openai.api_key = self.key
+                    
 
                 else:  # OpenAI key is not optional. Close system if we don't have it
                     info('Please enter OpenAI key as argument or fill info into keys.txt file', 'bad')

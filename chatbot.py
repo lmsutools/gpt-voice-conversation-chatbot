@@ -1,6 +1,9 @@
 import os
 import json
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=api_key,
+api_key=api_key)
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk import ne_chunk, pos_tag
@@ -155,7 +158,7 @@ class Chatbot():
         
         # 1. Set up apis
         self.api_key = api_key
-        openai.api_key = api_key 
+         
 
         if not api_key_11 == '':
             self.api_key_11 = api_key_11
@@ -200,27 +203,24 @@ class Chatbot():
 
     def gpt_response(self, prompt: str) -> str:
         if not self.gpt_model == 'gpt-3.5-turbo' and not self.gpt_model == 'gpt-4':
-            response = openai.Completion.create(
-                model=self.gpt_model,
-                prompt=self.conversation,
-                temperature=self.creativity,
-                max_tokens=self.reply_tokens,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0.6,
-                stop=[" Human:", f" {self.name}:"]
-                )
+            response = client.completions.create(model=self.gpt_model,
+            prompt=self.conversation,
+            temperature=self.creativity,
+            max_tokens=self.reply_tokens,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6,
+            stop=[" Human:", f" {self.name}:"])
             
         else:
             query = [{'role':'system', 'content':'speak naturally as a human would, giving positive opinions, ' + 
                       f'use user\'s name only once unless otherwise prompted, and pretend to be happy and content. be conversational, asking open-ended questions about user'},
                      {'role':'user', 'content':self.conversation + prompt}]
-            response = openai.ChatCompletion.create(
-                            model=self.gpt_model,
-                            messages=query,
-                            temperature=self.creativity,
-                            max_tokens=self.reply_tokens,
-                            stop=[" Human:", f" {self.name}:"])
+            response = client.chat.completions.create(model=self.gpt_model,
+            messages=query,
+            temperature=self.creativity,
+            max_tokens=self.reply_tokens,
+            stop=[" Human:", f" {self.name}:"])
             
             text = response['choices'][0]['message']['content']
             if not f'{self.name}: ' in text:
@@ -971,21 +971,19 @@ class GPT3(Chatbot):
     def __init__(self, api_key):
         # 1. Set up apis
         self.api_key = api_key
-        openai.api_key = api_key 
+         
 
     def request(self, text:str, tokens: int = 1000):
         if not hostile_or_personal(text) and not self.flagged_by_openai(text):
 
             # 1. Get response
-            response = openai.Completion.create(
-            model=self.gpt_model,
+            response = client.completions.create(model=self.gpt_model,
             prompt=text,
             temperature=0.9,
             max_tokens=tokens,
             top_p=1,
             frequency_penalty=0,
-            presence_penalty=0.6,
-            )
+            presence_penalty=0.6)
 
             # Cut response and play it
             reply = json.loads(str(response))['choices'][0]['text']
@@ -995,15 +993,13 @@ class GPT3(Chatbot):
         if not hostile_or_personal(text) and not self.flagged_by_openai(text):
 
             # 1. Get response
-            response = openai.Completion.create(
-            model=self.gpt_model,
+            response = client.completions.create(model=self.gpt_model,
             prompt=text,
             temperature=0.9,
             max_tokens=tokens,
             top_p=1,
             frequency_penalty=0,
-            presence_penalty=0.6,
-            )
+            presence_penalty=0.6)
 
             return response
         
@@ -1014,15 +1010,13 @@ class GPT3(Chatbot):
         '''
 
         if not self.gpt_model == 'gpt-3.5-turbo' and not self.gpt_model == 'gpt-4':
-            response = openai.Completion.create(
-                model=self.gpt_model,
-                prompt=self.conversation,
-                temperature=0.9,
-                max_tokens=max_token_ct,
-                top_p=1,
-                frequency_penalty=0,
-                presence_penalty=0.6,
-                )
+            response = client.completions.create(model=self.gpt_model,
+            prompt=self.conversation,
+            temperature=0.9,
+            max_tokens=max_token_ct,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.6)
             reply = json.loads(str(response))
             text = reply['choices'][0]['text']
             tokens = reply['usage']['total_tokens']
@@ -1030,10 +1024,9 @@ class GPT3(Chatbot):
         else:
             query = [{'role':'system', 'content':sys_prompt}, 
                      {'role':'user', 'content':prompt}]
-            response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            messages=query,
-                            max_tokens=max_token_ct)
+            response = client.chat.completions.create(model="gpt-3.5-turbo",
+            messages=query,
+            max_tokens=max_token_ct)
             
             reply = json.loads(str(response))
             text= reply['choices'][0]['message']['content']
